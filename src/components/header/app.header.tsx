@@ -18,6 +18,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import MoreIcon from '@mui/icons-material/MoreVert';
 import { Avatar, Container, Link } from '@mui/material';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 const Search = styled('div')(({ theme }) => ({
       position: 'relative',
@@ -60,6 +61,8 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 export default function AppHeader() {
+      const { data: session } = useSession();
+
       const router = useRouter();
       const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
       const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
@@ -186,10 +189,14 @@ export default function AppHeader() {
                                     </Search>
                                     <Box sx={{ flexGrow: 1 }} />
                                     <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
-                                          <Link href="/playlist">PlayList</Link>
-                                          <Link href="/like">Like</Link>
-                                          <Link href="/upload">Upload</Link>
-                                          <Avatar onClick={handleProfileMenuOpen}>TR</Avatar>
+                                          {session ? <>
+                                                <Link href="/playlist">PlayList</Link>
+                                                <Link href="/like">Like</Link>
+                                                <Link href="/upload">Upload</Link>
+                                                <Avatar onClick={handleProfileMenuOpen}>TR</Avatar>
+                                          </> :
+                                                <Link href="/api/auth/signin">Login</Link>}
+
 
 
                                     </Box>

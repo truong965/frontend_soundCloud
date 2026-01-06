@@ -41,7 +41,7 @@ export default async function HomePage() {
       <MainSlider
         data={party?.data ? party.data : []}
         title="Top Party Tracks" />
-      <AppFooter />
+
     </Container>
   );
 }
