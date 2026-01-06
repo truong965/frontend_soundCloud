@@ -1,30 +1,93 @@
 'use client';
 
 import { useWavesurfer } from "@/utils/customHook";
+import { Container } from "@mui/material";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-import WaveSurfer, { WaveSurferOptions } from 'wavesurfer.js'
-// WaveSurfer hook
-
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import WaveSurfer, { WaveSurferOptions } from "wavesurfer.js";
+import './wave.scss';
 const WaveTrack = () => {
-      const containerRef = useRef<HTMLDivElement>(null);
+
       const searchParams = useSearchParams();;
       const fileName = searchParams.get('audio');
-      const optionsMemo = useMemo(() => {
+      const containerRef = useRef<HTMLDivElement>(null);
+      const [time, setTime] = useState<string>("0:00");
+      const [duration, setDuration] = useState<string>("0:00");
+      const hoverRef = useRef<HTMLDivElement>(null);
+      const optionsMemo = useMemo((): Omit<WaveSurferOptions, 'container'> => {
+            let gradient, progressGradient;
+            if (typeof window !== 'undefined') {
+                  const canvas = document.createElement('canvas');
+                  const ctx = canvas.getContext('2d')!;
+
+                  // Define the waveform gradient
+                  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height * 1);
+                  gradient.addColorStop(0, '#656666') // Top color
+                  gradient.addColorStop((canvas.height * 0.7) / canvas.height, '#656666') // Top color
+                  gradient.addColorStop((canvas.height * 0.7 + 1) / canvas.height, '#ffffff') // White line
+                  gradient.addColorStop((canvas.height * 0.7 + 2) / canvas.height, '#ffffff') // White line
+                  gradient.addColorStop((canvas.height * 0.7 + 3) / canvas.height, '#B1B1B1') // Bottom color
+                  gradient.addColorStop(1, '#B1B1B1') // Bottom color
+
+                  // Define the progress gradient
+                  progressGradient = ctx.createLinearGradient(0, 0, 0, canvas.height * 1)
+                  progressGradient.addColorStop(0, '#EE772F') // Top color
+                  progressGradient.addColorStop((canvas.height * 0.7) / canvas.height, '#EB4926') // Top color
+                  progressGradient.addColorStop((canvas.height * 0.7 + 1) / canvas.height, '#ffffff') // White line
+                  progressGradient.addColorStop((canvas.height * 0.7 + 2) / canvas.height, '#ffffff') // White line
+                  progressGradient.addColorStop((canvas.height * 0.7 + 3) / canvas.height, '#F6B094') // Bottom color
+                  progressGradient.addColorStop(1, '#F6B094') // Bottom color
+            }
             return {
-                  waveColor: 'rgb(200, 0, 200)',
-                  progressColor: 'rgb(100, 0, 100)',
+                  waveColor: gradient,
+                  progressColor: progressGradient,
+                  height: 100,
+                  barWidth: 3,
                   url: `/api?audio=${fileName}`,
             }
       }, []);
       const wavesurfer = useWavesurfer(containerRef, optionsMemo);
+      const [isPlaying, setIsPlaying] = useState<boolean>();
+      const onPlayClick = useCallback(() => {
+            if (wavesurfer) {
+                  wavesurfer.isPlaying() ? wavesurfer.pause() : wavesurfer.play();
+                  setIsPlaying(wavesurfer.isPlaying())
+            }
+      }, [wavesurfer])
+      useEffect(() => {
+            if (!wavesurfer) return;
+            setIsPlaying(false);
+            const hover = hoverRef.current;
+            const waveform = containerRef.current!;
+            //@ts-ignore
+            waveform.addEventListener('pointermove', (e) => (hover.style.width = `${e.offsetX}px`))
 
+            const subscriptions = [
+                  wavesurfer.on('play', () => setIsPlaying(true)),
+                  wavesurfer.on('pause', () => setIsPlaying(false)),
+                  wavesurfer.on('decode', (duration) => setDuration(formatTime(duration))),
+                  wavesurfer.on('timeupdate', (currentTime) => setTime(formatTime(currentTime)))
+            ]
+            return () => {
+                  subscriptions.forEach((unsub) => unsub());
+            }
+      }, [wavesurfer])
+      const formatTime = (seconds: number) => {
+            const minutes = Math.floor(seconds / 60)
+            const secondsRemainder = Math.round(seconds) % 60
+            const paddedSeconds = `0${secondsRemainder}`.slice(-2)
+            return `${minutes}:${paddedSeconds}`
+      }
 
-      return (<>
-            <div ref={containerRef}>
+      return (
+            <Container>
+                  <div ref={containerRef} className="wave-form-container">
+                        <div className="time" id="time">{time}</div>
+                        <div className="duration" id="duration">{duration}</div>
+                        <div ref={hoverRef} className="hover-wave"></div>
+                  </div>
+                  <button onClick={() => onPlayClick()}>{isPlaying === true ? "Pause" : "Play"}</button>
 
-            </div>
-
-      </>)
+            </Container>)
 }
 export default WaveTrack;
