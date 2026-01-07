@@ -18,7 +18,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import MoreIcon from '@mui/icons-material/MoreVert';
 import { Avatar, Container, Link } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { signIn, signOut, useSession } from 'next-auth/react';
 
 const Search = styled('div')(({ theme }) => ({
       position: 'relative',
@@ -82,6 +82,7 @@ export default function AppHeader() {
       const handleMenuClose = () => {
             setAnchorEl(null);
             handleMobileMenuClose();
+            signOut();
       };
 
       const handleMobileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -195,7 +196,7 @@ export default function AppHeader() {
                                                 <Link href="/upload">Upload</Link>
                                                 <Avatar onClick={handleProfileMenuOpen}>TR</Avatar>
                                           </> :
-                                                <Link href="/api/auth/signin">Login</Link>}
+                                                <Link href="#" onClick={() => signIn()}>Login</Link>}
 
 
 
