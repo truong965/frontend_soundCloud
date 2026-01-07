@@ -4,7 +4,7 @@ import { sendRequest } from '@/utils/api';
 import { Category } from '@mui/icons-material';
 import { Container } from '@mui/material';
 import * as React from 'react';
-import { authOptions } from './api/auth/[...nextauth]/route';
+import { authOptions } from '../api/auth/[...nextauth]/route';
 import { getServerSession } from 'next-auth/next';
 
 export default async function HomePage() {
