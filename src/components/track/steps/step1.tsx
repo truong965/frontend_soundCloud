@@ -1,102 +1,79 @@
+// components/steps/step1.tsx
 import { FileWithPath, useDropzone } from 'react-dropzone';
-import "./theme.css"
-import { styled } from '@mui/material/styles';
-import Button from '@mui/material/Button';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import "./theme.css";
 import { useCallback } from 'react';
-import { sendRequest, sendRequestFile } from '@/utils/api';
-import { signIn, signOut, useSession } from 'next-auth/react';
-import axios from 'axios';
-import { useToast } from '@/utils/toast';
+import { UploadButton } from '../../UploadButton';
+import { useFileUpload } from '@/hooks/useFileUpload';
 
-export function InputFileUpload() {
-      const VisuallyHiddenInput = styled('input')({
-            clip: 'rect(0 0 0 0)',
-            clipPath: 'inset(50%)',
-            height: 1,
-            overflow: 'hidden',
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            whiteSpace: 'nowrap',
-            width: 1,
-      });
-
-      return (
-            <Button
-                  onClick={(e) => e.preventDefault()}
-                  component="label"
-                  role={undefined}
-                  variant="contained"
-                  tabIndex={-1}
-                  startIcon={<CloudUploadIcon />}
-            >
-                  Upload files
-                  <VisuallyHiddenInput
-                        type="file"
-                        onChange={(event) => console.log(event.target.files)}
-                        multiple
-                  />
-            </Button>
-      );
-}
-interface IProps {
+interface Step1Props {
       setValue: (v: number) => void;
-      setTrackUpload: any;
-      trackUpload: any;
+      setTrackUpload: (upload: any) => void;
+      trackUpload: {
+            fileName: string;
+            percent: number;
+            uploadedTrackName: string;
+      };
 }
-const Step1 = (props: IProps) => {
-      const toast = useToast();
-      const { data: session } = useSession();
+
+const Step1 = ({ setValue, setTrackUpload, trackUpload }: Step1Props) => {
+      const { uploadFile } = useFileUpload();
 
       const onDrop = useCallback(async (acceptedFiles: FileWithPath[]) => {
-            if (acceptedFiles && acceptedFiles.length > 0) {
-                  props.setValue(1);
-                  const audio = acceptedFiles[0];
-                  const formData = new FormData();
-                  formData.append('fileUpload', audio);
-                  try {
-                        const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/files/upload`,
-                              formData, {
-                              headers: {
-                                    Authorization: `Bearer ${session?.access_token}`,
-                                    "target_type": "track"
-                              },
-                              onUploadProgress: progressEvent => {
-                                    let percentCompleted = Math.floor((progressEvent.loaded * 100) / progressEvent.total!);
+            if (acceptedFiles.length === 0) return;
 
-                                    props.setTrackUpload({
-                                          ...props.trackUpload,
-                                          fileName: acceptedFiles[0].name,
-                                          percent: percentCompleted
-                                    })
-                              }
-                        })
-                        props.setTrackUpload((prevState: any) => ({
-                              ...prevState,
-                              uploadedTrackName: res.data.data.fileName
-                        }))
-                  } catch (err) {
-                        // @ts-ignore
-                        toast.error(err?.response?.data?.message);
+            const audio = acceptedFiles[0];
+
+            // Chuyển sang tab 2 ngay lập tức
+            setValue(1);
+
+            // Cập nhật tên file
+            setTrackUpload({
+                  ...trackUpload,
+                  fileName: audio.name,
+                  percent: 0
+            });
+
+            // Upload file với progress tracking
+            const uploadedFileName = await uploadFile(audio, {
+                  targetType: 'tracks',
+                  onProgress: (percent) => {
+                        setTrackUpload((prev: any) => ({
+                              ...prev,
+                              fileName: audio.name,
+                              percent
+                        }));
                   }
+            });
 
+            // Cập nhật tên file đã upload
+            if (uploadedFileName) {
+                  setTrackUpload((prev: any) => ({
+                        ...prev,
+                        uploadedTrackName: uploadedFileName
+                  }));
             }
-      }, [session]);
-      const { acceptedFiles, getRootProps, getInputProps } = useDropzone({ onDrop, accept: { 'audio': ['.mp3'] } });
+      }, [uploadFile, setValue, setTrackUpload, trackUpload]);
+
+      const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
+            onDrop,
+            accept: { 'audio/mpeg': ['.mp3'] },
+            maxFiles: 1
+      });
 
       const files = acceptedFiles.map((file: FileWithPath) => (
             <li key={file.path}>
-                  {file.path} - {file.size} bytes
+                  {file.path} - {(file.size / 1024 / 1024).toFixed(2)} MB
             </li>
       ));
-
 
       return (
             <section className="container">
                   <div {...getRootProps({ className: 'dropzone' })}>
                         <input {...getInputProps()} />
-                        <InputFileUpload />
+                        <UploadButton
+                              label="Upload files"
+                              onChange={() => { }} // Dropzone handles this
+                        />
                         <p>Drag 'n' drop some files here, or click to select files</p>
                   </div>
                   <aside>
@@ -105,5 +82,6 @@ const Step1 = (props: IProps) => {
                   </aside>
             </section>
       );
-}
+};
+
 export default Step1;

@@ -1,105 +1,29 @@
+// components/steps/step2.tsx
 'use client'
 import Box from '@mui/material/Box';
-import * as React from 'react';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import LinearProgress, { LinearProgressProps } from '@mui/material/LinearProgress';
+import LinearProgress from '@mui/material/LinearProgress';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
-import { styled } from '@mui/material/styles';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useSession } from 'next-auth/react';
 import { sendRequest } from '@/utils/api';
 import { useToast } from '@/utils/toast';
+import { UploadButton } from '../../UploadButton';
+import { useFileUpload } from '@/hooks/useFileUpload';
 
-function LinearProgressWithLabel(props: LinearProgressProps & { value: number }) {
-      return (
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Box sx={{ width: '100%', mr: 1 }}>
-                        <LinearProgress variant="determinate" {...props} />
-                  </Box>
-                  <Box sx={{ minWidth: 35 }}>
-                        <Typography variant="body2" color="text.secondary">{`${Math.round(
-                              props.value,
-                        )}%`}</Typography>
-                  </Box>
-            </Box>
-      );
-}
-
-function LinearWithValueLabel(props: IProps) {
-      return (
-            <Box sx={{ width: '100%' }}>
-                  <LinearProgressWithLabel value={props.trackUpload.percent} />
-            </Box>
-      );
-}
-
-const VisuallyHiddenInput = styled('input')({
-      clip: 'rect(0 0 0 0)',
-      clipPath: 'inset(50%)',
-      height: 1,
-      overflow: 'hidden',
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      whiteSpace: 'nowrap',
-      width: 1,
-});
-
-function InputFileUpload(props: any) {
-      const toast = useToast();
-      const { info, setInfo } = props;
-      const { data: session } = useSession();
-      const handleUpload = async (image: any) => {
-            const formData = new FormData();
-            formData.append('fileUpload', image);
-            try {
-                  const res = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/files/upload`,
-                        formData, {
-                        headers: {
-                              Authorization: `Bearer ${session?.access_token}`,
-                              "target_type": "images"
-                        },
-
-                  })
-                  setInfo(({
-                        ...info,
-                        imgUrl: res.data.data.fileName
-                  }))
-            } catch (err) {
-                  // @ts-ignore
-                  toast.error(err?.response?.data?.message);
-            }
-      }
-      return (
-            <Button
-                  onChange={(e) => {
-                        const event = e.target as HTMLInputElement;
-                        if (event.files) {
-                              handleUpload(event.files[0]);
-                        }
-                  }}
-                  component="label" variant="contained" startIcon={<CloudUploadIcon />}>
-                  Upload file
-                  <VisuallyHiddenInput type="file" />
-            </Button>
-      );
-}
-
-// --- Component chính ---
-interface IProps {
+interface Step2Props {
       trackUpload: {
             fileName: string;
             percent: number;
             uploadedTrackName: string;
-      }
+      };
       setValue: (v: number) => void;
 }
-interface INewTrack {
+
+interface TrackInfo {
       title: string;
       description: string;
       trackUrl: string;
@@ -107,43 +31,62 @@ interface INewTrack {
       category: string;
 }
 
+const CATEGORIES = [
+      { value: 'CHILL', label: 'CHILL' },
+      { value: 'WORKOUT', label: 'WORKOUT' },
+      { value: 'PARTY', label: 'PARTY' }
+];
 
-const Step2 = (props: IProps) => {
+const Step2 = ({ trackUpload, setValue }: Step2Props) => {
       const toast = useToast();
       const { data: session } = useSession();
-      const [info, setInfo] = useState<INewTrack>({
+      const { uploadFile, uploading } = useFileUpload();
+
+      const [info, setInfo] = useState<TrackInfo>({
             title: "",
             description: "",
             trackUrl: "",
             imgUrl: "",
             category: ""
       });
-      const { trackUpload, setValue } = props;
 
+      // Tự động cập nhật trackUrl khi upload xong
       useEffect(() => {
-            if (trackUpload && trackUpload.uploadedTrackName) {
-                  setInfo({
-                        ...info,
+            if (trackUpload?.uploadedTrackName) {
+                  setInfo(prev => ({
+                        ...prev,
                         trackUrl: trackUpload.uploadedTrackName
-                  })
+                  }));
             }
-      }, [trackUpload])
+      }, [trackUpload.uploadedTrackName]);
 
-      const category = [
-            {
-                  value: 'CHILL',
-                  label: 'CHILL',
-            },
-            {
-                  value: 'WORKOUT',
-                  label: 'WORKOUT',
-            },
-            {
-                  value: 'PARTY',
-                  label: 'PARTY',
+      // Handle image upload
+      const handleImageUpload = async (file: File) => {
+            const uploadedFileName = await uploadFile(file, {
+                  targetType: 'images'
+            });
+
+            if (uploadedFileName) {
+                  setInfo(prev => ({
+                        ...prev,
+                        imgUrl: uploadedFileName
+                  }));
             }
-      ];
+      };
+
+      // Handle form submit
       const handleSubmit = async () => {
+            // Validation
+            if (!info.title || !info.description || !info.category) {
+                  toast.error("Vui lòng điền đầy đủ thông tin");
+                  return;
+            }
+
+            if (!info.trackUrl) {
+                  toast.error("Chưa có file track được upload");
+                  return;
+            }
+
             const res = await sendRequest<IBackendRes<ITrackTop[]>>({
                   url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tracks`,
                   method: "POST",
@@ -158,93 +101,158 @@ const Step2 = (props: IProps) => {
                         category: info.category,
                   }
             });
+
             if (res.data) {
+                  // Reset form
+                  setInfo({
+                        title: "",
+                        description: "",
+                        trackUrl: "",
+                        imgUrl: "",
+                        category: ""
+                  });
                   setValue(0);
-                  toast.success("create success");
+                  toast.success("Tạo track thành công!");
             } else {
-                  toast.error(res?.message);
+                  toast.error(res?.message || "Có lỗi xảy ra");
             }
-      }
+      };
+
+      // Handle input change
+      const handleInputChange = (field: keyof TrackInfo) => (
+            e: React.ChangeEvent<HTMLInputElement>
+      ) => {
+            setInfo(prev => ({
+                  ...prev,
+                  [field]: e.target.value
+            }));
+      };
+
       return (
             <Box sx={{ width: '100%', mt: 2 }}>
-                  {/* Phần Progress Bar */}
-                  <Typography gutterBottom>Your uploading track:  {trackUpload.fileName}</Typography>
-                  <LinearWithValueLabel trackUpload={trackUpload} setValue={setValue} />
+                  {/* Progress Bar */}
+                  <Typography gutterBottom>
+                        Your uploading track: {trackUpload.fileName}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                        <Box sx={{ width: '100%', mr: 1 }}>
+                              <LinearProgress
+                                    variant="determinate"
+                                    value={trackUpload.percent}
+                              />
+                        </Box>
+                        <Box sx={{ minWidth: 35 }}>
+                              <Typography variant="body2" color="text.secondary">
+                                    {`${Math.round(trackUpload.percent)}%`}
+                              </Typography>
+                        </Box>
+                  </Box>
 
-                  {/* Phần Form Layout */}
-                  <Grid container spacing={4} sx={{ mt: 2 }}>
-
-                        {/* Cột Trái: Ảnh và Nút Upload */}
-                        <Grid item xs={12} sm={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                              {/* Placeholder hình vuông màu xám */}
+                  {/* Form Layout */}
+                  <Grid container spacing={4}>
+                        {/* Left Column: Image Upload */}
+                        <Grid
+                              item
+                              xs={12}
+                              sm={4}
+                              sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                        >
                               <Box
                                     sx={{
                                           width: 200,
                                           height: 200,
-                                          bgcolor: '#ccc', // Màu xám như trong hình
-                                          mb: 3 // Margin bottom
-                                    }}>
-                                    {info.imgUrl && <img src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/images/${info.imgUrl}`}></img>}
+                                          bgcolor: '#f5f5f5',
+                                          mb: 3,
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          overflow: 'hidden',
+                                          borderRadius: 1,
+                                          border: '1px solid #eee'
+                                    }}
+                              >
+                                    {info.imgUrl ? (
+                                          <Box
+                                                component="img"
+                                                sx={{
+                                                      width: '100%',
+                                                      height: '100%',
+                                                      objectFit: 'cover'
+                                                }}
+                                                alt="Track cover"
+                                                src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/images/${info.imgUrl}`}
+                                          />
+                                    ) : (
+                                          <Typography color="text.secondary">No image</Typography>
+                                    )}
                               </Box>
-                              {/* Component nút upload có sẵn */}
-                              <InputFileUpload setInfo={setInfo} info={info} />
+                              <UploadButton
+                                    accept="image/*"
+                                    onChange={(file) => handleImageUpload(file as File)}
+                                    disabled={uploading}
+                              />
                         </Grid>
 
-                        {/* Cột Phải: Form thông tin */}
+                        {/* Right Column: Track Information */}
                         <Grid item xs={12} sm={8}>
                               <TextField
-                                    value={info?.title}
-                                    onChange={(e) => setInfo({
-                                          ...info,
-                                          title: e.target.value,
-                                    })}
+                                    value={info.title}
+                                    onChange={handleInputChange('title')}
                                     label="Title"
-                                    variant="standard" // Dùng standard để chỉ hiện gạch chân
+                                    variant="standard"
                                     fullWidth
                                     margin="normal"
+                                    required
                               />
 
                               <TextField
-                                    value={info?.description}
-                                    onChange={(e) => setInfo({
-                                          ...info,
-                                          description: e.target.value,
-                                    })}
+                                    value={info.description}
+                                    onChange={handleInputChange('description')}
                                     label="Description"
                                     variant="standard"
                                     fullWidth
                                     margin="normal"
+                                    required
+                                    multiline
+                                    rows={3}
                               />
 
                               <TextField
-                                    value={info?.category}
-                                    onChange={(e) => setInfo({
-                                          ...info,
-                                          category: e.target.value,
-                                    })}
+                                    value={info.category}
+                                    onChange={handleInputChange('category')}
                                     select
                                     label="Category"
-                                    defaultValue="CHILL"
                                     variant="standard"
                                     fullWidth
                                     margin="normal"
+                                    required
                               >
-                                    {category.map((option) => (
+                                    {CATEGORIES.map((option) => (
                                           <MenuItem key={option.value} value={option.value}>
                                                 {option.label}
                                           </MenuItem>
                                     ))}
                               </TextField>
 
-                              <Box sx={{ mt: 4 }}>
-                                    <Button onClick={() => handleSubmit()} variant="outlined" sx={{ minWidth: '100px' }}>
+                              <Box sx={{ mt: 4, display: 'flex', gap: 2 }}>
+                                    <Button
+                                          onClick={handleSubmit}
+                                          variant="contained"
+                                          disabled={trackUpload.percent < 100 || uploading}
+                                    >
                                           SAVE
+                                    </Button>
+                                    <Button
+                                          onClick={() => setValue(0)}
+                                          variant="outlined"
+                                    >
+                                          CANCEL
                                     </Button>
                               </Box>
                         </Grid>
                   </Grid>
             </Box>
-      )
-}
+      );
+};
 
 export default Step2;
