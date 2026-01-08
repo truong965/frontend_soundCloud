@@ -2,7 +2,7 @@
 
 import { useWavesurfer } from "@/utils/customHook";
 import { CardMedia, Container, Tooltip } from "@mui/material";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import WaveSurfer, { WaveSurferOptions } from "wavesurfer.js";
 import { PauseCircleOutline, PlayArrowOutlined } from "@mui/icons-material";
@@ -11,13 +11,17 @@ import './wave.scss';
 import { fetchDefaultImages, sendRequest } from "@/utils/api";
 import { useTrackContext } from "@/lib/track.wrapper";
 import CommentTrack from "./comment.track";
+import LikeTrack from "./like.track";
+
 interface IProps {
       track: ITrackTop | null;
       comments: ITrackComment[];
 }
 
 const WaveTrack = (props: IProps) => {
+      const router = useRouter();
       const { track, comments } = props;
+      const firstViewRef = useRef(true);
       const searchParams = useSearchParams();;
       const fileName = searchParams.get('audio');
       const containerRef = useRef<HTMLDivElement>(null);
@@ -88,6 +92,19 @@ const WaveTrack = (props: IProps) => {
                   }
             }
       }, [track, currentTrack, setCurrentTrack]);
+      const handleIncreaseView = async () => {
+            if (firstViewRef.current) {
+                  const res = await sendRequest<IBackendRes<IModelPaginate<ITrackLike>>>({
+                        url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tracks/increase-view`,
+                        method: "POST",
+                        body: {
+                              trackId: track?._id
+                        }
+                  });
+                  firstViewRef.current = false;
+                  router.refresh();
+            }
+      }
 
       useEffect(() => {
             if (!wavesurfer) return;
@@ -147,7 +164,10 @@ const WaveTrack = (props: IProps) => {
                               <div className="info" style={{ display: "flex" }}>
                                     <div>
                                           <div
-                                                onClick={() => onPlayClick()}
+                                                onClick={() => {
+                                                      onPlayClick();
+                                                      handleIncreaseView();
+                                                }}
                                                 style={{
                                                       borderRadius: "50%",
                                                       background: "#f50",
@@ -253,6 +273,8 @@ const WaveTrack = (props: IProps) => {
                               />
                         </div>
                   </div>
+                  <LikeTrack
+                        track={track} />
                   <CommentTrack
                         track={track}
                         comments={comments}
