@@ -1,4 +1,5 @@
 
+import CommentTrack from "@/components/track/comment.track";
 import WaveTrack from "@/components/track/wave.track";
 import { sendRequest } from "@/utils/api";
 import { useSearchParams } from "next/navigation";
@@ -9,11 +10,24 @@ const DetailsTrackPage = async (props: any) => {
             url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tracks/${params.slug}`,
             method: "GET",
       })
+      const commentRes = await sendRequest<IBackendRes<IModelPaginate<ITrackComment>>>({
+            url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tracks/comments`,
+            method: "POST",
+            queryParams: {
+                  current: 1,
+                  pageSize: 10,
+                  trackId: params.slug,
+                  sort: "-createdAt"
+            }
+      });
+
       return (
             <>
                   <WaveTrack
                         track={res?.data ?? null}
+                        comments={commentRes?.data?.result ?? []}
                   />
+
             </>
       )
 }

@@ -24,43 +24,66 @@ const AppFooter = () => {
       }, [currentTrack.isPlaying]);
       if (!hasMounted) return (<></>)//fragment
       return (
-            <div style={{ marginTop: 50 }}>
-                  <AppBar position="fixed"
-                        sx={{
-                              top: 'auto', bottom: 0,
-                              background: "#f2f2f2"
-                        }}
-                  >
-                        <Container sx={{ display: "flex", gap: 20, ".rhap_main .rhap_controls-section": { gap: "20px" } }}>
-                              <AudioPlayer
-                                    ref={playerRef}
-                                    onPause={() => {
-                                          setCurrentTrack({ ...currentTrack, isPlaying: false })
-                                    }}
-                                    onPlay={() => {
-                                          setCurrentTrack({ ...currentTrack, isPlaying: true })
-                                    }}
-                                    layout="horizontal-reverse"
-                                    src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/tracks/${currentTrack.trackUrl}`}
-                                    volume={0.5}
-                                    style={{
-                                          boxShadow: "unset",
+            <>
+                  {currentTrack._id &&
+                        <div style={{ marginTop: 50 }}>
+                              <AppBar position="fixed"
+                                    sx={{
+                                          top: 'auto', bottom: 0,
                                           background: "#f2f2f2"
                                     }}
-                              />
-                              <div style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "start",
-                                    justifyContent: "center",
-                                    minWidth: 100
-                              }}>
-                                    <div style={{ color: "#ccc" }}>{currentTrack?.uploader?.name}</div>
-                                    <div style={{ color: "black" }}>{currentTrack?.title}</div>
-                              </div>
-                        </Container>
-                  </AppBar>
-            </div>
+                              >
+                                    <Container disableGutters sx={{ display: "flex", gap: 20, ".rhap_main .rhap_controls-section": { gap: "20px" } }}>
+                                          <AudioPlayer
+                                                ref={playerRef}
+                                                onPause={() => {
+                                                      setCurrentTrack({ ...currentTrack, isPlaying: false })
+                                                }}
+                                                onPlay={() => {
+                                                      setCurrentTrack({ ...currentTrack, isPlaying: true })
+                                                }}
+                                                layout="horizontal-reverse"
+                                                src={`${process.env.NEXT_PUBLIC_BACKEND_URL}/tracks/${currentTrack.trackUrl}`}
+                                                volume={0.5}
+                                                style={{
+                                                      boxShadow: "unset",
+                                                      background: "#f2f2f2"
+                                                }}
+                                          />
+                                          <div style={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                alignItems: "start",
+                                                justifyContent: "center",
+                                                width: "220px",
+                                          }}>
+                                                <div
+                                                      title={currentTrack.description}
+                                                      style={{
+                                                            width: "100%",
+                                                            color: "#ccc",
+                                                            overflow: "hidden",
+                                                            textOverflow: "ellipsis",
+                                                            whiteSpace: "nowrap"
+                                                      }}
+                                                >{currentTrack.description}</div>
+                                                <div
+                                                      title={currentTrack.title}
+                                                      style={{
+                                                            width: "100%",
+                                                            color: "black",
+                                                            overflow: "hidden",
+                                                            textOverflow: "ellipsis",
+                                                            whiteSpace: "nowrap"
+
+                                                      }}>{currentTrack.title}</div>
+                                          </div>
+                                    </Container>
+                              </AppBar>
+                        </div>
+                  }
+            </>
+
       )
 }
 

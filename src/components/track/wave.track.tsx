@@ -8,14 +8,16 @@ import WaveSurfer, { WaveSurferOptions } from "wavesurfer.js";
 import { PauseCircleOutline, PlayArrowOutlined } from "@mui/icons-material";
 
 import './wave.scss';
-import { sendRequest } from "@/utils/api";
+import { fetchDefaultImages, sendRequest } from "@/utils/api";
 import { useTrackContext } from "@/lib/track.wrapper";
+import CommentTrack from "./comment.track";
 interface IProps {
       track: ITrackTop | null;
+      comments: ITrackComment[];
 }
 
 const WaveTrack = (props: IProps) => {
-      const { track } = props;
+      const { track, comments } = props;
       const searchParams = useSearchParams();;
       const fileName = searchParams.get('audio');
       const containerRef = useRef<HTMLDivElement>(null);
@@ -113,29 +115,7 @@ const WaveTrack = (props: IProps) => {
             return `${minutes}:${paddedSeconds}`
       }
 
-      const arrComments = [
-            {
-                  id: 1,
-                  avatar: "http://localhost:8000/images/chill1.png",
-                  moment: 10,
-                  user: "username 1",
-                  content: "just a comment1"
-            },
-            {
-                  id: 2,
-                  avatar: "http://localhost:8000/images/chill1.png",
-                  moment: 30,
-                  user: "username 2",
-                  content: "just a comment3"
-            },
-            {
-                  id: 3,
-                  avatar: "http://localhost:8000/images/chill1.png",
-                  moment: 50,
-                  user: "username 3",
-                  content: "just a comment3"
-            },
-      ]
+
 
       const calLeft = (moment: number) => {
             const hardCodeDuration = 199;
@@ -231,15 +211,15 @@ const WaveTrack = (props: IProps) => {
                                           style={{ position: "relative" }}
                                     >
                                           {
-                                                arrComments.map(item => {
+                                                comments?.map(item => {
                                                       return (
-                                                            <Tooltip title={item.content} arrow key={item.id}>
+                                                            <Tooltip title={item.content} arrow key={item._id}>
                                                                   <img
                                                                         onPointerMove={(e) => {
                                                                               const hover = hoverRef.current!;
                                                                               hover.style.width = calLeft(item.moment);
                                                                         }}
-                                                                        key={item.id}
+                                                                        key={item._id}
                                                                         style={{
                                                                               height: 20, width: 20,
                                                                               position: "absolute",
@@ -247,7 +227,7 @@ const WaveTrack = (props: IProps) => {
                                                                               zIndex: 20,
                                                                               left: calLeft(item.moment)
                                                                         }}
-                                                                        src={`http://localhost:8000/images/chill1.png`}
+                                                                        src={fetchDefaultImages(item.user.type)}
                                                                   />
                                                             </Tooltip>
                                                       )
@@ -273,6 +253,11 @@ const WaveTrack = (props: IProps) => {
                               />
                         </div>
                   </div>
+                  <CommentTrack
+                        track={track}
+                        comments={comments}
+                        wavesurfer={wavesurfer}
+                  />
             </div >
       )
 }

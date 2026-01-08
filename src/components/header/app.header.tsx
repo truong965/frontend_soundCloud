@@ -19,6 +19,7 @@ import MoreIcon from '@mui/icons-material/MoreVert';
 import { Avatar, Container, Link } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { signIn, signOut, useSession } from 'next-auth/react';
+import { fetchDefaultImages } from '@/utils/api';
 
 const Search = styled('div')(({ theme }) => ({
       position: 'relative',
@@ -198,7 +199,10 @@ export default function AppHeader() {
                                                 <Link href="/playlist">PlayList</Link>
                                                 <Link href="/like">Like</Link>
                                                 <Link href="/track/upload">Upload</Link>
-                                                <Avatar onClick={handleProfileMenuOpen}>TR</Avatar>
+                                                {/* <Avatar onClick={handleProfileMenuOpen}>TR</Avatar> */}
+                                                <img onClick={handleProfileMenuOpen}
+                                                      style={{ height: 35, width: 35, cursor: "pointer" }}
+                                                      src={fetchDefaultImages(session.user.type)} />
                                           </> :
                                                 <Link href="/auth/signin">Login</Link>}
 
