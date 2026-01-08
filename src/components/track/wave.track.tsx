@@ -8,9 +8,14 @@ import WaveSurfer, { WaveSurferOptions } from "wavesurfer.js";
 import { PauseCircleOutline, PlayArrowOutlined } from "@mui/icons-material";
 
 import './wave.scss';
+import { sendRequest } from "@/utils/api";
+import { useTrackContext } from "@/lib/track.wrapper";
+interface IProps {
+      track: ITrackTop | null;
+}
 
-const WaveTrack = () => {
-
+const WaveTrack = (props: IProps) => {
+      const { track } = props;
       const searchParams = useSearchParams();;
       const fileName = searchParams.get('audio');
       const containerRef = useRef<HTMLDivElement>(null);
@@ -18,6 +23,7 @@ const WaveTrack = () => {
 
       const [time, setTime] = useState<string>("0:00");
       const [duration, setDuration] = useState<string>("0:00");
+      const { currentTrack, setCurrentTrack } = useTrackContext() as ITrackContext;
 
       const optionsMemo = useMemo((): Omit<WaveSurferOptions, 'container'> => {
             let gradient, progressGradient;
@@ -77,6 +83,10 @@ const WaveTrack = () => {
             if (wavesurfer) {
                   wavesurfer.isPlaying() ? wavesurfer.pause() : wavesurfer.play();
             }
+            if (track && wavesurfer) {
+                  setCurrentTrack({ ...track, isPlaying: false })
+            }
+
       }, [wavesurfer])
       const formatTime = (seconds: number) => {
             const minutes = Math.floor(seconds / 60)
@@ -114,6 +124,15 @@ const WaveTrack = () => {
             const percent = (moment / hardCodeDuration) * 100;
             return `${percent}%`
       }
+      useEffect(() => {
+            if (wavesurfer && currentTrack.isPlaying) {
+                  wavesurfer.pause();
+            }
+      }, [currentTrack])
+      useEffect(() => {
+            if (track?._id && !currentTrack?._id)
+                  setCurrentTrack({ ...track, isPlaying: false })
+      }, [track])
       return (
             <div style={{ marginTop: 20 }}>
                   <div
@@ -168,7 +187,7 @@ const WaveTrack = () => {
                                                 width: "fit-content",
                                                 color: "white"
                                           }}>
-                                                Hỏi Dân IT's song
+                                                {track?.title}
                                           </div>
                                           <div style={{
                                                 padding: "0 5px",
@@ -179,7 +198,7 @@ const WaveTrack = () => {
                                                 color: "white"
                                           }}
                                           >
-                                                Eric
+                                                {track?.uploader?.name}
                                           </div>
                                     </div>
                               </div>
@@ -203,7 +222,7 @@ const WaveTrack = () => {
                                           {
                                                 arrComments.map(item => {
                                                       return (
-                                                            <Tooltip title={item.content} arrow>
+                                                            <Tooltip title={item.content} arrow key={item.id}>
                                                                   <img
                                                                         onPointerMove={(e) => {
                                                                               const hover = hoverRef.current!;
