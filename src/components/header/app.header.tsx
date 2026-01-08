@@ -106,9 +106,13 @@ export default function AppHeader() {
                   open={isMenuOpen}
                   onClose={handleMenuClose}
             >
-                  <MenuItem><Link href="/profile"> Profile</Link></MenuItem>
+                  <MenuItem>
+                        <Link href={`/profile/${session?.user?._id}`}>
+                              Profile
+                        </Link>
+                  </MenuItem>
                   <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
-            </Menu>
+            </Menu >
       );
       const mobileMenuId = 'primary-search-account-menu-mobile';
       const renderMobileMenu = (
