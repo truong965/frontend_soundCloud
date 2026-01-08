@@ -7,6 +7,7 @@ import { useCallback } from 'react';
 import { sendRequest, sendRequestFile } from '@/utils/api';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import axios from 'axios';
+import { useToast } from '@/utils/toast';
 
 export function InputFileUpload() {
       const VisuallyHiddenInput = styled('input')({
@@ -45,7 +46,7 @@ interface IProps {
       trackUpload: any;
 }
 const Step1 = (props: IProps) => {
-
+      const toast = useToast();
       const { data: session } = useSession();
 
       const onDrop = useCallback(async (acceptedFiles: FileWithPath[]) => {
@@ -76,7 +77,8 @@ const Step1 = (props: IProps) => {
                               uploadedTrackName: res.data.data.fileName
                         }))
                   } catch (err) {
-                        alert("File upload failed");
+                        // @ts-ignore
+                        toast.error(err?.response?.data?.message);
                   }
 
             }

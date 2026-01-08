@@ -1,5 +1,4 @@
 'use client'
-
 import Box from '@mui/material/Box';
 import * as React from 'react';
 import Typography from '@mui/material/Typography';
@@ -14,6 +13,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
 import { sendRequest } from '@/utils/api';
+import { useToast } from '@/utils/toast';
 
 function LinearProgressWithLabel(props: LinearProgressProps & { value: number }) {
       return (
@@ -51,6 +51,7 @@ const VisuallyHiddenInput = styled('input')({
 });
 
 function InputFileUpload(props: any) {
+      const toast = useToast();
       const { info, setInfo } = props;
       const { data: session } = useSession();
       const handleUpload = async (image: any) => {
@@ -70,7 +71,8 @@ function InputFileUpload(props: any) {
                         imgUrl: res.data.data.fileName
                   }))
             } catch (err) {
-                  alert("File upload failed");
+                  // @ts-ignore
+                  toast.error(err?.response?.data?.message);
             }
       }
       return (
@@ -95,6 +97,7 @@ interface IProps {
             percent: number;
             uploadedTrackName: string;
       }
+      setValue: (v: number) => void;
 }
 interface INewTrack {
       title: string;
@@ -106,7 +109,7 @@ interface INewTrack {
 
 
 const Step2 = (props: IProps) => {
-
+      const toast = useToast();
       const { data: session } = useSession();
       const [info, setInfo] = useState<INewTrack>({
             title: "",
@@ -115,7 +118,7 @@ const Step2 = (props: IProps) => {
             imgUrl: "",
             category: ""
       });
-      const { trackUpload } = props;
+      const { trackUpload, setValue } = props;
 
       useEffect(() => {
             if (trackUpload && trackUpload.uploadedTrackName) {
@@ -156,16 +159,17 @@ const Step2 = (props: IProps) => {
                   }
             });
             if (res.data) {
-                  alert("create success")
+                  setValue(0);
+                  toast.success("create success");
             } else {
-                  alert(res.message);
+                  toast.error(res?.message);
             }
       }
       return (
             <Box sx={{ width: '100%', mt: 2 }}>
                   {/* Phần Progress Bar */}
                   <Typography gutterBottom>Your uploading track:  {trackUpload.fileName}</Typography>
-                  <LinearWithValueLabel trackUpload={trackUpload} />
+                  <LinearWithValueLabel trackUpload={trackUpload} setValue={setValue} />
 
                   {/* Phần Form Layout */}
                   <Grid container spacing={4} sx={{ mt: 2 }}>
