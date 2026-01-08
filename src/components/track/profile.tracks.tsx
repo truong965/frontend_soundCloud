@@ -29,8 +29,10 @@ const ProfileTracks = (props: IProps) => {
                               <Link style={{
                                     textDecoration: "none",
                                     color: "unsex"
-                              }}>
+                              }}
                                     href={`/track/${data._id}?audio=${data.trackUrl}&id=${data._id}`}
+                              >
+
                                     <Typography component="div" variant="h5">
                                           {data.title}
                                     </Typography>

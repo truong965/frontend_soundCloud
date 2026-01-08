@@ -1,7 +1,7 @@
 'use client';
 
 import { useWavesurfer } from "@/utils/customHook";
-import { Container, Tooltip } from "@mui/material";
+import { CardMedia, Container, Tooltip } from "@mui/material";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import WaveSurfer, { WaveSurferOptions } from "wavesurfer.js";
@@ -60,6 +60,33 @@ const WaveTrack = (props: IProps) => {
       const wavesurfer = useWavesurfer(containerRef, optionsMemo);
       const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
+      // Tắt tiếng Wavesurfer để tránh Echo (chỉ AppFooter phát tiếng) 
+      useEffect(() => {
+            if (wavesurfer) {
+                  wavesurfer.setVolume(0);
+            }
+      }, [wavesurfer]);
+      useEffect(() => {
+            if (wavesurfer && currentTrack.isPlaying) {
+                  wavesurfer.play();
+            } else if (wavesurfer && !currentTrack.isPlaying) {
+                  wavesurfer.pause();
+            }
+      }, [currentTrack.isPlaying, wavesurfer]);
+      //  update Context để AppFooter lo việc phát nhạc
+      const onPlayClick = useCallback(() => {
+            if (track) {
+                  // Nếu đang click vào đúng bài đang phát
+                  if (currentTrack._id === track._id) {
+                        // Toggle trạng thái Play/Pause
+                        setCurrentTrack({ ...currentTrack, isPlaying: !currentTrack.isPlaying });
+                  } else {
+                        // Nếu click vào bài mới -> Set bài mới và Start
+                        setCurrentTrack({ ...track, isPlaying: true });
+                  }
+            }
+      }, [track, currentTrack, setCurrentTrack]);
+
       useEffect(() => {
             if (!wavesurfer) return;
             setIsPlaying(false);
@@ -69,24 +96,15 @@ const WaveTrack = (props: IProps) => {
             waveform.addEventListener('pointermove', (e) => (hover.style.width = `${e.offsetX}px`))
 
             const subscriptions = [
-                  wavesurfer.on('play', () => setIsPlaying(true)),
-                  wavesurfer.on('pause', () => setIsPlaying(false)),
+                  // wavesurfer.on('play', () => setIsPlaying(true)), // Bỏ dòng này để tránh loop
+                  // wavesurfer.on('pause', () => setIsPlaying(false)), // Bỏ dòng này
                   wavesurfer.on('decode', (duration) => setDuration(formatTime(duration))),
                   wavesurfer.on('timeupdate', (currentTime) => setTime(formatTime(currentTime))),
-                  wavesurfer.once('interaction', () => { wavesurfer.play() })
+                  // wavesurfer.once('interaction', () => { wavesurfer.play() }) // Bỏ dòng này, để context điều khiển
             ]
             return () => {
                   subscriptions.forEach((unsub) => unsub());
             }
-      }, [wavesurfer])
-      const onPlayClick = useCallback(() => {
-            if (wavesurfer) {
-                  wavesurfer.isPlaying() ? wavesurfer.pause() : wavesurfer.play();
-            }
-            if (track && wavesurfer) {
-                  setCurrentTrack({ ...track, isPlaying: false })
-            }
-
       }, [wavesurfer])
       const formatTime = (seconds: number) => {
             const minutes = Math.floor(seconds / 60)
@@ -124,15 +142,8 @@ const WaveTrack = (props: IProps) => {
             const percent = (moment / hardCodeDuration) * 100;
             return `${percent}%`
       }
-      useEffect(() => {
-            if (wavesurfer && currentTrack.isPlaying) {
-                  wavesurfer.pause();
-            }
-      }, [currentTrack])
-      useEffect(() => {
-            if (track?._id && !currentTrack?._id)
-                  setCurrentTrack({ ...track, isPlaying: false })
-      }, [track])
+      const isCurrentTrackPlaying = currentTrack?.isPlaying && currentTrack?._id === track?._id;
+
       return (
             <div style={{ marginTop: 20 }}>
                   <div
@@ -168,7 +179,7 @@ const WaveTrack = (props: IProps) => {
                                                       cursor: "pointer"
                                                 }}
                                           >
-                                                {isPlaying === true ?
+                                                {isCurrentTrackPlaying ? // Sử dụng biến đã check ID
                                                       <PauseCircleOutline
                                                             sx={{ fontSize: 30, color: "white" }}
                                                       />
@@ -253,12 +264,13 @@ const WaveTrack = (props: IProps) => {
                                     alignItems: "center"
                               }}
                         >
-                              <div style={{
-                                    background: "#ccc",
-                                    width: 250,
-                                    height: 250
-                              }}>
-                              </div>
+                              <CardMedia
+                                    component="img"
+
+                                    sx={{ width: 250, height: 250 }}
+                                    image={`${process.env.NEXT_PUBLIC_BACKEND_URL}/images/${currentTrack.imgUrl}`}
+                                    alt="Live from space album cover"
+                              />
                         </div>
                   </div>
             </div >
