@@ -60,7 +60,7 @@ const DetailsTrackPage = async (props: Props) => {
             }
       });
 
-      if (res?.data) {
+      if (!res.data) {
             notFound()
       }
       return (
