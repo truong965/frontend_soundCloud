@@ -5,7 +5,7 @@ import { AuthOptions } from "next-auth/core/types"
 import { JWT } from "next-auth/jwt"
 import CredentialsProvider from "next-auth/providers/credentials";
 export const authOptions: AuthOptions = {
-      secret: process.env.NO_SECRET,
+      secret: process.env.NEXTAUTH_SECRET,
       providers: [
             CredentialsProvider({
                   // The name to display on the sign in form (e.g. "Sign in with...")
