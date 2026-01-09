@@ -4,6 +4,7 @@ import { sendRequest } from "@/utils/api";
 
 // import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import type { Metadata, ResolvingMetadata } from 'next'
+import { notFound } from "next/navigation";
 
 type Props = {
       params: Promise<{ slug: string }>
@@ -59,7 +60,9 @@ const DetailsTrackPage = async (props: Props) => {
             }
       });
 
-
+      if (res?.data) {
+            notFound()
+      }
       return (
             <>
                   <WaveTrack
