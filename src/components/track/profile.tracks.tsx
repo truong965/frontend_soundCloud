@@ -13,6 +13,7 @@ import SkipNextIcon from '@mui/icons-material/SkipNext';
 import { useTrackContext } from '@/lib/track.wrapper';
 import { PauseCircleOutline } from '@mui/icons-material';
 import { Link } from '@mui/material';
+import { convertSlugUrl } from '@/utils/api';
 
 
 interface IProps {
@@ -30,7 +31,7 @@ const ProfileTracks = (props: IProps) => {
                                     textDecoration: "none",
                                     color: "unsex"
                               }}
-                                    href={`/track/${data._id}?audio=${data.trackUrl}&id=${data._id}`}
+                                    href={`/track/${convertSlugUrl(data.title)}-${data._id}.html?audio=${data.trackUrl}&id=${data._id}`}
                               >
 
                                     <Typography component="div" variant="h5">
