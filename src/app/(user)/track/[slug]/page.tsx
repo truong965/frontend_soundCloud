@@ -37,6 +37,12 @@ export async function generateMetadata(
       }
 }
 
+export async function generateStaticParams() {
+      return [
+            { slug: "sau-con-mua-695a3166310dfcec23716bc9.html" },
+      ]
+}
+
 const DetailsTrackPage = async (props: Props) => {
       // const session = await getServerSession(authOptions);
       const { params } = props;
@@ -47,7 +53,7 @@ const DetailsTrackPage = async (props: Props) => {
       const res = await sendRequest<IBackendRes<ITrackTop>>({
             url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tracks/${id}`,
             method: "GET",
-            nextOption: { cache: "no-store" }
+            // nextOption: { cache: "no-store" }
       })
       const commentRes = await sendRequest<IBackendRes<IModelPaginate<ITrackComment>>>({
             url: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tracks/comments`,
