@@ -19,6 +19,7 @@ import { useRouter } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 import { fetchDefaultImages } from '@/utils/api';
 import { useState } from 'react';
+import Image from 'next/image';
 
 const Search = styled('div')(({ theme }) => ({
       position: 'relative',
@@ -199,9 +200,19 @@ export default function AppHeader() {
                                                 <Link href="/like">Like</Link>
                                                 <Link href="/track/upload">Upload</Link>
                                                 {/* <Avatar onClick={handleProfileMenuOpen}>TR</Avatar> */}
-                                                <img onClick={handleProfileMenuOpen}
-                                                      style={{ height: 35, width: 35, cursor: "pointer" }}
-                                                      src={fetchDefaultImages(session.user.type)} />
+                                                <Image
+                                                      onClick={handleProfileMenuOpen}
+                                                      alt='avatar'
+                                                      src={fetchDefaultImages(session.user.type)}
+                                                      width={35}  // Chuyển ra ngoài làm props bắt buộc
+                                                      height={35} // Chuyển ra ngoài làm props bắt buộc
+                                                      style={{
+                                                            cursor: "pointer",
+                                                            objectFit: "cover", // Nên thêm để ảnh không bị méo nếu tỉ lệ width/height không khớp ảnh gốc
+                                                            borderRadius: "50%" // Thường avatar sẽ bo tròn
+                                                      }}
+                                                />
+
                                           </> :
                                                 <Link href="/auth/signin">Login</Link>}
 

@@ -9,6 +9,7 @@ import WaveSurfer from "wavesurfer.js";
 
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { useHasMounted } from '@/utils/customHook';
+import Image from 'next/image';
 dayjs.extend(relativeTime)
 
 interface IProps {
@@ -81,11 +82,16 @@ const CommentTrack = (props: IProps) => {
                   </div>
                   <div style={{ display: "flex", gap: "10px" }}>
                         <div className='left' style={{ width: "190px" }}>
-                              <img
+                              <Image
+                                    width={150}  // Chuyển ra ngoài làm props bắt buộc
+                                    height={150} // Chuyển ra ngoài làm props bắt buộc
                                     style={{
-                                          height: 150, width: 150,
+                                          cursor: "pointer",
+                                          objectFit: "cover", // Nên thêm để ảnh không bị méo nếu tỉ lệ width/height không khớp ảnh gốc
+                                          borderRadius: "50%" // Thường avatar sẽ bo tròn
                                     }}
                                     src={fetchDefaultImages(track?.uploader?.type!)}
+                                    alt={track?.uploader?.type || ""}
                               />
                               <div>{track?.uploader?.email}</div>
                         </div>
@@ -94,12 +100,17 @@ const CommentTrack = (props: IProps) => {
                                     return (
                                           <Box key={comment._id} sx={{ display: "flex", gap: "10px", justifyContent: "space-between" }}>
                                                 <Box sx={{ display: "flex", gap: "10px", marginBottom: "25px", alignItems: "center" }}>
-                                                      <img
+                                                      <Image
+                                                            width={40}  // Chuyển ra ngoài làm props bắt buộc
+                                                            height={40} // Chuyển ra ngoài làm props bắt buộc
                                                             style={{
-                                                                  height: 40, width: 40,
-
+                                                                  cursor: "pointer",
+                                                                  objectFit: "cover", // Nên thêm để ảnh không bị méo nếu tỉ lệ width/height không khớp ảnh gốc
+                                                                  borderRadius: "50%" // Thường avatar sẽ bo tròn
                                                             }}
+
                                                             src={fetchDefaultImages(comment.user.type)}
+                                                            alt={comment.user.type}
                                                       />
                                                       <div>
                                                             <div style={{ fontSize: "13px" }}>{comment?.user?.name ?? comment?.user?.email} at
