@@ -1,9 +1,16 @@
-import { sendRequest } from "@/utils/api";
-import { FavoriteOutlined, PlayCircleFilledOutlined } from "@mui/icons-material";
-import { Chip } from "@mui/material";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+'use client'
+// 1. Core Libraries (React, Next.js)
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // Dùng cho App Router
+import { useSession } from "next-auth/react";
+
+// 2. UI Components & Icons (MUI - Direct Import để tối ưu bundle size)
+import Chip from "@mui/material/Chip";
+import FavoriteOutlined from "@mui/icons-material/FavoriteOutlined";
+import PlayCircleFilledOutlined from "@mui/icons-material/PlayCircleFilledOutlined";
+
+// 3. Internal Utils (Local Project)
+import { sendRequest } from "@/utils/api";
 
 interface IProps {
       track: ITrackTop | null;

@@ -1,9 +1,9 @@
 'use client'
 
 import { Container, Tabs, Tab, Box } from "@mui/material";
-import * as React from 'react';
 import Step1 from "./steps/step1";
 import Step2 from "./steps/step2";
+import { useState } from "react";
 
 interface TabPanelProps {
       children?: React.ReactNode;
@@ -35,8 +35,8 @@ const INITIAL_TRACK_UPLOAD: TrackUpload = {
 };
 
 const UploadTabs = () => {
-      const [currentTab, setCurrentTab] = React.useState(0);
-      const [trackUpload, setTrackUpload] = React.useState<TrackUpload>(INITIAL_TRACK_UPLOAD);
+      const [currentTab, setCurrentTab] = useState(0);
+      const [trackUpload, setTrackUpload] = useState<TrackUpload>(INITIAL_TRACK_UPLOAD);
 
       const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
             setCurrentTab(newValue);

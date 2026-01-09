@@ -1,5 +1,4 @@
 'use client';
-import * as React from 'react';
 import { styled, alpha } from '@mui/material/styles';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -10,16 +9,16 @@ import InputBase from '@mui/material/InputBase';
 import Badge from '@mui/material/Badge';
 import MenuItem from '@mui/material/MenuItem';
 import Menu from '@mui/material/Menu';
-import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import MailIcon from '@mui/icons-material/Mail';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MoreIcon from '@mui/icons-material/MoreVert';
-import { Avatar, Container, Link } from '@mui/material';
+import { Container, Link } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { signIn, signOut, useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { fetchDefaultImages } from '@/utils/api';
+import { useState } from 'react';
 
 const Search = styled('div')(({ theme }) => ({
       position: 'relative',
@@ -65,9 +64,9 @@ export default function AppHeader() {
       const { data: session } = useSession();
 
       const router = useRouter();
-      const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+      const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
       const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
-            React.useState<null | HTMLElement>(null);
+            useState<null | HTMLElement>(null);
 
       const isMenuOpen = Boolean(anchorEl);
       const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);

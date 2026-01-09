@@ -1,10 +1,10 @@
 'use client';
 
 import { useWavesurfer } from "@/utils/customHook";
-import { CardMedia, Container, Tooltip } from "@mui/material";
+import { CardMedia, Tooltip } from "@mui/material";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import WaveSurfer, { WaveSurferOptions } from "wavesurfer.js";
+import { WaveSurferOptions } from "wavesurfer.js";
 import { PauseCircleOutline, PlayArrowOutlined } from "@mui/icons-material";
 
 import './wave.scss';

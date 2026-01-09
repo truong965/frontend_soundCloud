@@ -1,7 +1,6 @@
 'use client'
 import { fetchDefaultImages, sendRequest } from '@/utils/api';
 import { Box, TextField } from '@mui/material';
-import Avatar from '@mui/material/Avatar';
 import { useState } from 'react';
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";

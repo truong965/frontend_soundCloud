@@ -10,7 +10,7 @@ import IconButton from '@mui/material/IconButton';
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { ArrowBackOutlined } from "@mui/icons-material";
+import ArrowBackOutlined from "@mui/icons-material/ArrowBackOutlined";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 

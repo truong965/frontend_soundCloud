@@ -1,6 +1,6 @@
 import ProfileTracks from "@/components/track/profile.tracks"
 import { sendRequest } from "@/utils/api";
-import { Container } from "@mui/material";
+import Container from "@mui/material/Container";
 import Grid from '@mui/material/Grid';
 
 const ProfilePage = async ({ params }: { params: { slug: string } }) => {
